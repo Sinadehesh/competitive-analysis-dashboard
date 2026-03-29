@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Competitive Analysis Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Work+Sans:wght@300..700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<style>
+:root,[data-theme="light"]{
+  --color-bg:#f7f6f2;--color-surface:#f9f8f5;--color-surface-2:#fbfbf9;
+  --color-surface-offset:#f3f0ec;--color-divider:#dcd9d5;--color-border:#d4d1ca;
+  --color-text:#28251d;--color-text-muted:#7a7974;--color-text-faint:#bab9b4;
+  --color-primary:#01696f;--color-primary-hover:#0c4e54;
+  --color-primary-highlight:#cedcd8;
+  --color-gold:#d19900;--color-blue:#006494;--color-purple:#7a39bb;
+  --color-orange:#da7101;--color-success:#437a22;--color-error:#a12c7b;
+  --shadow-sm:0 1px 2px oklch(0.2 0.01 80/0.06);
+  --shadow-md:0 4px 12px oklch(0.2 0.01 80/0.08);
+  --shadow-lg:0 12px 32px oklch(0.2 0.01 80/0.12);
+  --radius-sm:.375rem;--radius-md:.5rem;--radius-lg:.75rem;--radius-xl:1rem;
+  --space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem;
+  --space-6:1.5rem;--space-8:2rem;--space-12:3rem;--space-16:4rem;
+  --text-xs:clamp(.75rem,.7rem+.25vw,.875rem);
+  --text-sm:clamp(.875rem,.8rem+.35vw,1rem);
+  --text-base:clamp(1rem,.95rem+.25vw,1.125rem);
+  --text-lg:clamp(1.125rem,1rem+.75vw,1.5rem);
+  --text-xl:clamp(1.5rem,1.2rem+1.25vw,2.25rem);
+  --text-2xl:clamp(2rem,1.2rem+2.5vw,3.5rem);
+  --font-display:"Instrument Serif",Georgia,serif;
+  --font-body:"Work Sans","Helvetica Neue",sans-serif;
+  --transition:180ms cubic-bezier(.16,1,.3,1);
+}
+[data-theme="dark"]{
+  --color-bg:#171614;--color-surface:#1c1b19;--color-surface-2:#201f1d;
+  --color-surface-offset:#1d1c1a;--color-divider:#262523;--color-border:#393836;
+  --color-text:#cdccca;--color-text-muted:#797876;--color-text-faint:#5a5957;
+  --color-primary:#4f98a3;--color-primary-hover:#227f8b;
+  --color-primary-highlight:#313b3b;
+  --color-gold:#e8af34;--color-blue:#5591c7;--color-purple:#a86fdf;
+  --color-orange:#fdab43;--color-success:#6daa45;--color-error:#d163a7;
+  --shadow-sm:0 1px 2px oklch(0 0 0/.2);
+  --shadow-md:0 4px 12px oklch(0 0 0/.3);
+  --shadow-lg:0 12px 32px oklch(0 0 0/.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;}
+body{min-height:100dvh;font-family:var(--font-body);font-size:var(--text-base);
+  color:var(--color-text);background:var(--color-bg);line-height:1.6;}
+img,svg{display:block;max-width:100%;}
+button{cursor:pointer;background:none;border:none;font:inherit;color:inherit;}
+a,button{transition:color var(--transition),background var(--transition),
+  border-color var(--transition),box-shadow var(--transition);}
+canvas{max-width:100%;}
+.page{display:grid;grid-template-rows:auto 1fr;min-height:100dvh;}
+header{
+  position:sticky;top:0;z-index:100;
+  background:color-mix(in oklab,var(--color-bg) 85%,transparent);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--color-divider);
+  padding:var(--space-4) var(--space-8);
+  display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);
+}
+.logo{display:flex;align-items:center;gap:var(--space-3);}
+.logo-mark svg{color:var(--color-primary);}
+.logo-name{font-family:var(--font-display);font-size:var(--text-lg);
+  color:var(--color-text);letter-spacing:-.01em;}
+.logo-tag{font-size:var(--text-xs);color:var(--color-text-muted);
+  background:var(--color-surface-offset);padding:2px 8px;border-radius:999px;
+  border:1px solid var(--color-border);}
+nav{display:flex;align-items:center;gap:var(--space-2);}
+.nav-link{font-size:var(--text-sm);color:var(--color-text-muted);
+  padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);
+  text-decoration:none;}
+.nav-link:hover,.nav-link.active{color:var(--color-text);
+  background:var(--color-surface-offset);}
+.theme-btn{width:36px;height:36px;border-radius:var(--radius-md);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--color-text-muted);border:1px solid var(--color-border);}
+.theme-btn:hover{color:var(--color-text);background:var(--color-surface-offset);}
+main{padding:var(--space-8);max-width:1400px;margin:0 auto;width:100%;
+  display:flex;flex-direction:column;gap:var(--space-12);}
+.hero{padding:var(--space-12) 0 var(--space-8);}
+.hero-eyebrow{font-size:var(--text-xs);text-transform:uppercase;
+  letter-spacing:.12em;color:var(--color-primary);font-weight:600;
+  margin-bottom:var(--space-3);}
+.hero-title{font-family:var(--font-display);font-size:var(--text-2xl);
+  line-height:1.1;color:var(--color-text);max-width:22ch;margin-bottom:var(--space-4);}
+.hero-title em{font-style:italic;color:var(--color-primary);}
+.hero-sub{font-size:var(--text-base);color:var(--color-text-muted);
+  max-width:58ch;margin-bottom:var(--space-8);}
+.hero-actions{display:flex;gap:var(--space-3);flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:var(--space-2);
+  padding:var(--space-3) var(--space-6);border-radius:var(--radius-md);
+  font-size:var(--text-sm);font-weight:500;text-decoration:none;}
+.btn-primary{background:var(--color-primary);color:#fff;}
+.btn-primary:hover{background:var(--color-primary-hover);}
+.btn-ghost{border:1px solid var(--color-border);color:var(--color-text-muted);}
+.btn-ghost:hover{color:var(--color-text);background:var(--color-surface-offset);}
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--space-4);}
+.kpi-card{background:var(--color-surface);border:1px solid var(--color-border);
+  border-radius:var(--radius-lg);padding:var(--space-6);box-shadow:var(--shadow-sm);}
+.kpi-label{font-size:var(--text-xs);color:var(--color-text-muted);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:var(--space-2);}
+.kpi-value{font-family:var(--font-display);font-size:var(--text-xl);
+  color:var(--color-text);font-variant-numeric:tabular-nums;}
+.kpi-delta{font-size:var(--text-xs);margin-top:var(--space-1);}
+.kpi-delta.up{color:var(--color-success);}
+.kpi-delta.down{color:var(--color-error);}
+.section-title{font-family:var(--font-display);font-size:var(--text-lg);
+  color:var(--color-text);margin-bottom:var(--space-2);}
+.section-sub{font-size:var(--text-sm);color:var(--color-text-muted);
+  max-width:62ch;margin-bottom:var(--space-6);}
+.chart-grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:var(--space-6);}
+.chart-grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--space-6);}
+.chart-card{background:var(--color-surface);border:1px solid var(--color-border);
+  border-radius:var(--radius-xl);padding:var(--space-6);box-shadow:var(--shadow-sm);}
+.chart-card:hover{box-shadow:var(--shadow-md);}
+.chart-card-title{font-size:var(--text-sm);font-weight:600;color:var(--color-text);margin-bottom:var(--space-1);}
+.chart-card-sub{font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:var(--space-4);}
+.chart-wrap{position:relative;width:100%;}
+.chart-wrap canvas{width:100%!important;}
+.heatmap-table{width:100%;border-collapse:collapse;font-size:var(--text-xs);}
+.heatmap-table th{padding:var(--space-2) var(--space-3);text-align:center;
+  font-weight:600;color:var(--color-text-muted);white-space:nowrap;}
+.heatmap-table td{padding:var(--space-2) var(--space-3);text-align:center;
+  border-radius:var(--radius-sm);font-weight:500;font-variant-numeric:tabular-nums;}
+.heatmap-table tr td:first-child{text-align:left;color:var(--color-text-muted);
+  font-weight:400;white-space:nowrap;}
+.hm-5{background:color-mix(in oklab,var(--color-primary) 85%,var(--color-surface));color:#fff;}
+.hm-4{background:color-mix(in oklab,var(--color-primary) 55%,var(--color-surface));color:#fff;}
+.hm-3{background:color-mix(in oklab,var(--color-primary) 28%,var(--color-surface));color:var(--color-text);}
+.hm-2{background:color-mix(in oklab,var(--color-primary) 12%,var(--color-surface));color:var(--color-text-muted);}
+.hm-1{background:var(--color-surface-offset);color:var(--color-text-faint);}
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--space-4);}
+.comp-card{background:var(--color-surface);border:1px solid var(--color-border);
+  border-radius:var(--radius-xl);padding:var(--space-6);box-shadow:var(--shadow-sm);}
+.comp-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4);}
+.comp-name{font-weight:600;font-size:var(--text-base);}
+.comp-badge{font-size:var(--text-xs);padding:2px 8px;border-radius:999px;
+  background:var(--color-primary-highlight);color:var(--color-primary);font-weight:500;}
+.comp-stat-row{display:flex;gap:var(--space-4);margin-bottom:var(--space-4);}
+.comp-stat{flex:1;}
+.comp-stat-label{font-size:var(--text-xs);color:var(--color-text-muted);}
+.comp-stat-val{font-size:var(--text-sm);font-weight:600;color:var(--color-text);font-variant-numeric:tabular-nums;}
+.swot-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2);}
+.swot-item{padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);font-size:var(--text-xs);}
+.swot-s{background:color-mix(in oklab,var(--color-success) 12%,var(--color-surface));color:var(--color-success);}
+.swot-w{background:color-mix(in oklab,var(--color-error) 12%,var(--color-surface));color:var(--color-error);}
+.swot-o{background:color-mix(in oklab,var(--color-blue) 12%,var(--color-surface));color:var(--color-blue);}
+.swot-t{background:color-mix(in oklab,var(--color-gold) 14%,var(--color-surface));color:var(--color-gold);}
+.swot-label{font-weight:700;display:block;margin-bottom:2px;}
+.roadmap-wrap{overflow-x:auto;}
+.roadmap-grid{display:grid;grid-template-columns:200px repeat(14,1fr);
+  grid-auto-rows:36px;gap:3px;min-width:800px;}
+.roadmap-header{display:contents;}
+.roadmap-header .rh-label{background:transparent;font-size:var(--text-xs);color:var(--color-text-muted);
+  display:flex;align-items:center;padding:0 var(--space-2);}
+.roadmap-header .rh-week{background:var(--color-surface-offset);border-radius:var(--radius-sm);
+  font-size:var(--text-xs);color:var(--color-text-muted);display:flex;align-items:center;justify-content:center;}
+.roadmap-row{display:contents;}
+.roadmap-row .rr-name{background:var(--color-surface);border:1px solid var(--color-border);
+  border-radius:var(--radius-sm);font-size:var(--text-xs);color:var(--color-text-muted);
+  display:flex;align-items:center;padding:0 var(--space-3);white-space:nowrap;}
+.roadmap-row .rr-cell{border-radius:var(--radius-sm);}
+.rr-mvp{background:var(--color-primary);opacity:.85;}
+.rr-p2{background:var(--color-gold);opacity:.85;}
+.rr-empty{background:transparent;}
+.roadmap-legend{display:flex;gap:var(--space-6);margin-top:var(--space-4);}
+.rl-item{display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-xs);color:var(--color-text-muted);}
+.rl-dot{width:12px;height:12px;border-radius:3px;}
+.analysis-panel{background:var(--color-surface);border:1px solid var(--color-border);
+  border-radius:var(--radius-xl);padding:var(--space-8);box-shadow:var(--shadow-sm);}
+.analysis-tag{display:inline-flex;align-items:center;gap:var(--space-2);
+  font-size:var(--text-xs);color:var(--color-primary);font-weight:600;
+  background:var(--color-primary-highlight);padding:var(--space-1) var(--space-3);
+  border-radius:999px;margin-bottom:var(--space-4);}
+.analysis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:var(--space-6);margin-top:var(--space-6);}
+.insight-item{border-left:2px solid var(--color-primary);padding-left:var(--space-4);}
+.insight-title{font-weight:600;font-size:var(--text-sm);color:var(--color-text);margin-bottom:var(--space-1);}
+.insight-body{font-size:var(--text-sm);color:var(--color-text-muted);}
+footer{border-top:1px solid var(--color-divider);padding:var(--space-8);text-align:center;
+  font-size:var(--text-xs);color:var(--color-text-faint);}
+@media(max-width:768px){
+  header{padding:var(--space-3) var(--space-4);}
+  nav .nav-link{display:none;}
+  main{padding:var(--space-4);gap:var(--space-8);}
+  .chart-grid-2,.chart-grid-3{grid-template-columns:1fr;}
+  .comp-grid{grid-template-columns:1fr;}
+  .hero-title{font-size:clamp(1.75rem,8vw,3rem);}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-label="CompeteIQ logo">
+        <rect x="2" y="2" width="28" height="28" rx="7" fill="currentColor" opacity=".12"/>
+        <path d="M16 6 L26 11 L26 21 L16 26 L6 21 L6 11 Z" stroke="currentColor" stroke-width="1.8" fill="none"/>
+        <circle cx="16" cy="16" r="4" fill="currentColor"/>
+        <line x1="16" y1="6" x2="16" y2="12" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="26" y1="11" x2="20.2" y2="14" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="26" y1="21" x2="20.2" y2="18" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="16" y1="26" x2="16" y2="20" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="6" y1="21" x2="11.8" y2="18" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="6" y1="11" x2="11.8" y2="14" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <span class="logo-name">CompeteIQ</span>
+    <span class="logo-tag">Deep Research</span>
+  </div>
+  <nav>
+    <a href="#landscape" class="nav-link active">Landscape</a>
+    <a href="#competitors" class="nav-link">Competitors</a>
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#roadmap" class="nav-link">Roadmap</a>
+  </nav>
+  <button class="theme-btn" data-theme-toggle aria-label="Toggle theme">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  </button>
+</header>
+<main>
+  <section class="hero">
+    <p class="hero-eyebrow">Competitive Intelligence Platform</p>
+    <h1 class="hero-title">Know your market. <em>Own</em> your position.</h1>
+    <p class="hero-sub">Deep-research AI maps your competitive landscape into rich, explorable visualizations — market maps, traffic trends, feature heatmaps, and white-space analysis — all in one dashboard.</p>
+    <div class="hero-actions">
+      <a href="#landscape" class="btn btn-primary">Explore Dashboard</a>
+      <a href="#roadmap" class="btn btn-ghost">View Roadmap</a>
+    </div>
+  </section>
+  <section id="landscape">
+    <div class="kpi-strip">
+      <div class="kpi-card"><div class="kpi-label">Tools Analyzed</div><div class="kpi-value">6</div><div class="kpi-delta up">↑ Semrush, Ahrefs, Crayon + 3 more</div></div>
+      <div class="kpi-card"><div class="kpi-label">Capabilities Mapped</div><div class="kpi-value">10</div><div class="kpi-delta up">↑ SEO → LLM Analysis</div></div>
+      <div class="kpi-card"><div class="kpi-label">Market Leader Traffic</div><div class="kpi-value">19.8m</div><div class="kpi-delta up">↑ Semrush /mo</div></div>
+      <div class="kpi-card"><div class="kpi-label">White-Space Score</div><div class="kpi-value">5 / 5</div><div class="kpi-delta up">↑ Your Tool leads LLM + Messaging</div></div>
+      <div class="kpi-card"><div class="kpi-label">MVP Timeline</div><div class="kpi-value">7 wks</div><div class="kpi-delta">Phase 2 → wk 13</div></div>
+    </div>
+  </section>
+  <section>
+    <h2 class="section-title">Market Landscape</h2>
+    <p class="section-sub">Positioning map and traffic momentum across the competitive set. Bubble size = estimated monthly visits.</p>
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-card-title">Competitive Market Map</div>
+        <div class="chart-card-sub">Price Tier vs. Feature Depth — bubble = traffic volume</div>
+        <div class="chart-wrap" style="aspect-ratio:1.4;"><canvas id="marketMap"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Monthly Traffic Trends (2025)</div>
+        <div class="chart-card-sub">Estimated monthly visits in millions</div>
+        <div class="chart-wrap" style="aspect-ratio:1.4;"><canvas id="trafficTrends"></canvas></div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <h2 class="section-title">Acquisition & Visibility</h2>
+    <p class="section-sub">How competitors attract traffic and where they dominate in organic search share-of-voice.</p>
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-card-title">Traffic Channel Share (%)</div>
+        <div class="chart-card-sub">Organic, Paid, Social, Referral, Direct breakdown</div>
+        <div class="chart-wrap" style="aspect-ratio:1.4;"><canvas id="channelShare"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Share of Voice — Organic</div>
+        <div class="chart-card-sub">Estimated organic keyword universe share</div>
+        <div class="chart-wrap" style="aspect-ratio:1.4;"><canvas id="shareOfVoice"></canvas></div>
+      </div>
+    </div>
+  </section>
+  <section id="features">
+    <h2 class="section-title">Feature Coverage Heatmap</h2>
+    <p class="section-sub">Scores each tool 1–5 across 10 capability dimensions. Green = best-in-class. Your Tool dominates the bottom rows — the white space nobody owns.</p>
+    <div class="chart-card" style="overflow-x:auto;">
+      <table class="heatmap-table">
+        <thead><tr><th style="text-align:left">Capability</th><th>Semrush</th><th>Ahrefs</th><th>Similarweb</th><th>Crayon</th><th>Klue</th><th style="color:var(--color-primary)">Your Tool</th></tr></thead>
+        <tbody id="heatmapBody"></tbody>
+      </table>
+    </div>
+  </section>
+  <section id="competitors">
+    <h2 class="section-title">Competitor Deep Dives</h2>
+    <p class="section-sub">Mini-SWOT and key metrics for each player in the landscape.</p>
+    <div class="comp-grid" id="compGrid"></div>
+  </section>
+  <section>
+    <h2 class="section-title">Pricing Tier Evolution</h2>
+    <p class="section-sub">Entry-level monthly pricing over time. Lower price + higher features = your differentiation angle.</p>
+    <div class="chart-card">
+      <div class="chart-card-title">Entry Pricing Trends ($/mo)</div>
+      <div class="chart-card-sub">2022 – 2025 entry-level plan pricing</div>
+      <div class="chart-wrap" style="aspect-ratio:2.8;"><canvas id="pricingChart"></canvas></div>
+    </div>
+  </section>
+  <section>
+    <div class="analysis-panel">
+      <span class="analysis-tag">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        LLM Research Synthesis
+      </span>
+      <h2 class="section-title" style="margin-bottom:var(--space-2)">Strategic Insights</h2>
+      <p style="font-size:var(--text-sm);color:var(--color-text-muted);max-width:68ch;">Deep research model findings — gaps, opportunities, and recommended positioning.</p>
+      <div class="analysis-grid">
+        <div class="insight-item"><div class="insight-title">🎯 White Space: LLM Orchestration</div><div class="insight-body">No existing tool treats the LLM as an orchestrator of the full analysis workflow. All competitors use AI only for summaries — leaving the planner → collector → analyst → chart pipeline unclaimed.</div></div>
+        <div class="insight-item"><div class="insight-title">📊 White Space: Graph-First Output</div><div class="insight-body">Current tools output PDFs, battlecards, or alert emails. None deliver a live, explorable dashboard where every insight maps to an interactive chart. This is a major UX gap.</div></div>
+        <div class="insight-item"><div class="insight-title">💰 Pricing Opportunity</div><div class="insight-body">Semrush and Ahrefs charge $120–$250/mo for SEO-only tools. CI platforms run $15k–$30k/yr enterprise. The $49–$99/mo SaaS tier for SMBs is entirely unserved.</div></div>
+        <div class="insight-item"><div class="insight-title">🔗 Integration Gap</div><div class="insight-body">Every team stitches together 3–5 tools manually. A unified pipeline with a single output dashboard wins on workflow alone.</div></div>
+        <div class="insight-item"><div class="insight-title">🚀 MVP Recommendation</div><div class="insight-body">Start with 5 competitors, 1 SEO connector, and a web crawler. Deliver market map + traffic trends + feature heatmap in week 7. No direct competitor at the SMB price point.</div></div>
+        <div class="insight-item"><div class="insight-title">📈 Growth Vector</div><div class="insight-body">Phase 2 adds pricing-change detection and review sentiment — which Crayon charges enterprise rates for. Owning this at $99/mo makes the tool category-defining for bootstrapped founders.</div></div>
+      </div>
+    </div>
+  </section>
+  <section id="roadmap">
+    <h2 class="section-title">Implementation Roadmap</h2>
+    <p class="section-sub">13-week build plan. Teal = MVP (ship in 7 weeks). Gold = Phase 2 enhancements.</p>
+    <div class="chart-card roadmap-wrap">
+      <div class="roadmap-grid" id="roadmapGrid"></div>
+      <div class="roadmap-legend">
+        <div class="rl-item"><div class="rl-dot" style="background:var(--color-primary)"></div> MVP (weeks 1–7)</div>
+        <div class="rl-item"><div class="rl-dot" style="background:var(--color-gold)"></div> Phase 2 (weeks 7–13)</div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer>CompeteIQ — LLM-Powered Competitive Analysis &nbsp;·&nbsp; Built with Deep Research</footer>
+</div>
+<script>
+(function(){
+  const btn=document.querySelector('[data-theme-toggle]');
+  const root=document.documentElement;
+  let d=root.getAttribute('data-theme')||'dark';
+  const icons={dark:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',light:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'};
+  btn.innerHTML=icons[d];
+  btn.addEventListener('click',()=>{d=d==='dark'?'light':'dark';root.setAttribute('data-theme',d);btn.innerHTML=icons[d];renderCharts();});
+})();
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function palette(){
+  return{primary:css('--color-primary'),gold:css('--color-gold'),blue:css('--color-blue'),
+    purple:css('--color-purple'),orange:css('--color-orange'),error:css('--color-error'),
+    success:css('--color-success'),text:css('--color-text'),muted:css('--color-text-muted'),
+    border:css('--color-border'),surface:css('--color-surface'),bg:css('--color-bg')};
+}
+const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function baseOpts(){
+  const p=palette();
+  return{responsive:true,maintainAspectRatio:true,
+    plugins:{legend:{labels:{color:p.muted,font:{family:'Work Sans',size:12},boxWidth:12,padding:16}}},
+    scales:{x:{grid:{color:p.border+'33'},ticks:{color:p.muted,font:{size:11}}},
+            y:{grid:{color:p.border+'33'},ticks:{color:p.muted,font:{size:11}}}}};
+}
+let charts={};
+function destroyAll(){Object.values(charts).forEach(c=>c&&c.destroy());charts={};}
+function renderCharts(){
+  destroyAll();
+  const p=palette();
+  charts.mm=new Chart(document.getElementById('marketMap'),{type:'bubble',
+    data:{datasets:[
+      {label:'Semrush',data:[{x:2.5,y:4.1,r:18}],backgroundColor:p.primary+'cc'},
+      {label:'Ahrefs',data:[{x:2.3,y:3.9,r:14}],backgroundColor:p.blue+'cc'},
+      {label:'Similarweb',data:[{x:2.0,y:3.4,r:11}],backgroundColor:p.purple+'cc'},
+      {label:'Crayon',data:[{x:3.2,y:3.6,r:6}],backgroundColor:p.orange+'cc'},
+      {label:'Klue',data:[{x:3.0,y:3.4,r:5}],backgroundColor:p.gold+'cc'},
+      {label:'Your Tool',data:[{x:1.9,y:4.9,r:4}],backgroundColor:p.success+'cc',borderColor:p.success,borderWidth:2},
+    ]},
+    options:{...baseOpts(),plugins:{...baseOpts().plugins,tooltip:{callbacks:{label:d=>`${d.dataset.label} — Price:${d.raw.x} Depth:${d.raw.y}`}}},
+      scales:{x:{...baseOpts().scales.x,title:{display:true,text:'Pricing Tier',color:p.muted},min:1,max:4.5},
+               y:{...baseOpts().scales.y,title:{display:true,text:'Feature Depth',color:p.muted},min:1,max:6}}}
+  });
+  charts.tt=new Chart(document.getElementById('trafficTrends'),{type:'line',
+    data:{labels:months,datasets:[
+      {label:'Semrush',data:[16,16.5,17,17.2,17.8,18,18.3,18.1,18.5,19,19.2,19.8],borderColor:p.primary,fill:false,tension:.4,pointRadius:3},
+      {label:'Ahrefs',data:[10,10.3,10.8,11,11.4,12,12.2,12,12.5,12.8,13,13.2],borderColor:p.blue,fill:false,tension:.4,pointRadius:3},
+      {label:'Similarweb',data:[7.5,7.8,8,8.2,8.6,9,9.2,9,9.3,9.6,9.8,10],borderColor:p.purple,fill:false,tension:.4,pointRadius:3},
+      {label:'Crayon',data:[1.2,1.3,1.4,1.5,1.5,1.6,1.7,1.8,1.9,2,2.1,2.2],borderColor:p.gold,fill:false,tension:.4,pointRadius:3},
+    ]},
+    options:{...baseOpts(),scales:{x:{...baseOpts().scales.x,title:{display:true,text:'Month',color:p.muted}},y:{...baseOpts().scales.y,title:{display:true,text:'Visits (m)',color:p.muted}}}}
+  });
+  charts.cs=new Chart(document.getElementById('channelShare'),{type:'bar',
+    data:{labels:['Semrush','Ahrefs','Similarweb','Crayon','Klue'],datasets:[
+      {label:'Organic',data:[62,70,45,38,30],backgroundColor:p.primary+'dd'},
+      {label:'Paid',data:[15,10,20,25,22],backgroundColor:p.blue+'dd'},
+      {label:'Social',data:[8,6,12,18,20],backgroundColor:p.purple+'dd'},
+      {label:'Referral',data:[10,9,15,12,18],backgroundColor:p.gold+'dd'},
+      {label:'Direct',data:[5,5,8,7,10],backgroundColor:p.orange+'dd'},
+    ]},
+    options:{...baseOpts(),scales:{x:{...baseOpts().scales.x,stacked:true,title:{display:true,text:'Tool',color:p.muted}},y:{...baseOpts().scales.y,stacked:true,title:{display:true,text:'Share (%)',color:p.muted},max:100}}}
+  });
+  charts.sov=new Chart(document.getElementById('shareOfVoice'),{type:'doughnut',
+    data:{labels:['Semrush','Ahrefs','Similarweb','Moz','Others'],
+      datasets:[{data:[34,26,18,10,12],backgroundColor:[p.primary,p.blue,p.purple,p.gold,p.border],borderColor:p.surface,borderWidth:3,hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{color:p.muted,font:{family:'Work Sans',size:12},padding:14}},tooltip:{callbacks:{label:d=>`${d.label}: ${d.raw}%`}}}}
+  });
+  const years=['2022','2023','2024','2025'];
+  charts.pc=new Chart(document.getElementById('pricingChart'),{type:'line',
+    data:{labels:years,datasets:[
+      {label:'Semrush',data:[99.95,119.95,129.95,139.95],borderColor:p.primary,tension:.3,pointRadius:5,borderWidth:2.5,fill:false},
+      {label:'Ahrefs',data:[99,99,129,129],borderColor:p.blue,tension:.3,pointRadius:5,borderWidth:2.5,fill:false},
+      {label:'Crayon',data:[null,null,1249,1249],borderColor:p.orange,tension:.3,pointRadius:5,borderWidth:2.5,fill:false},
+      {label:'Your Tool',data:[null,null,null,49],borderColor:p.success,tension:.3,pointRadius:7,borderWidth:2.5,pointBackgroundColor:p.success,fill:false},
+    ]},
+    options:{...baseOpts(),scales:{x:{...baseOpts().scales.x,title:{display:true,text:'Year',color:p.muted}},y:{...baseOpts().scales.y,title:{display:true,text:'$/month',color:p.muted}}}}
+  });
+}
+const hmData=[
+  ['SEO / Traffic',5,5,4,2,2,3],['Keyword Intelligence',5,5,3,1,1,2],
+  ['CI Monitoring',2,2,3,5,5,4],['Firmographics',2,1,3,4,4,3],
+  ['LLM Analysis',2,2,2,3,3,5],['Feature Matrix',1,1,1,3,4,5],
+  ['Pricing Tracker',2,2,2,4,3,5],['Review Intel',1,1,2,4,4,4],
+  ['Messaging Audit',1,1,1,3,3,5],['White Space Map',1,1,1,2,2,5],
+];
+const tbody=document.getElementById('heatmapBody');
+hmData.forEach(row=>{
+  const tr=document.createElement('tr');
+  row.forEach((cell,i)=>{const td=document.createElement('td');if(i===0){td.textContent=cell;}else{td.textContent=cell;td.className='hm-'+cell;}tr.appendChild(td);});
+  tbody.appendChild(tr);
+});
+const compData=[
+  {name:'Semrush',badge:'SEO Leader',traffic:'19.8m',price:'$140/mo',founded:'2008',s:'Massive keyword database',w:'No CI / battlecard features',o:'Expand into CI + LLM features',t:'AI-native tools disrupting SEO'},
+  {name:'Ahrefs',badge:'Backlink Expert',traffic:'13.2m',price:'$129/mo',founded:'2010',s:'Best-in-class backlink index',w:'Very SEO-narrow, no firmographics',o:'Add company/competitor profiles',t:'Losing ground on LLM-based answers'},
+  {name:'Similarweb',badge:'Traffic Intel',traffic:'10m',price:'Custom',founded:'2007',s:'Multi-channel traffic data',w:'Enterprise-only pricing wall',o:'SMB-tier product opportunity',t:'Cookie-less measurement challenges'},
+  {name:'Crayon',badge:'CI Platform',traffic:'2.2m',price:'$1249/mo',founded:'2016',s:'Broad source monitoring & alerts',w:'Very expensive, no SEO data layer',o:'Integrate SEO + LLM deep research',t:'Mid-market buyers churning on cost'},
+  {name:'Klue',badge:'Battlecards',traffic:'1.5m',price:'$15k+/yr',founded:'2015',s:'Strong sales enablement output',w:'No traffic or SEO data',o:'Add quantitative market mapping',t:'Sales-only focus limits TAM'},
+  {name:'Your Tool',badge:'White Space',traffic:'Building',price:'$49/mo',founded:'2026',s:'Full pipeline: SEO + CI + LLM',w:'Early stage, no brand awareness',o:'Entire SMB market underserved',t:'Speed of execution vs. incumbents'},
+];
+const grid=document.getElementById('compGrid');
+compData.forEach(c=>{
+  grid.innerHTML+=`<div class="comp-card"><div class="comp-card-head"><span class="comp-name">${c.name}</span><span class="comp-badge">${c.badge}</span></div><div class="comp-stat-row"><div class="comp-stat"><div class="comp-stat-label">Traffic/mo</div><div class="comp-stat-val">${c.traffic}</div></div><div class="comp-stat"><div class="comp-stat-label">Entry Price</div><div class="comp-stat-val">${c.price}</div></div><div class="comp-stat"><div class="comp-stat-label">Founded</div><div class="comp-stat-val">${c.founded}</div></div></div><div class="swot-grid"><div class="swot-item swot-s"><span class="swot-label">S</span>${c.s}</div><div class="swot-item swot-w"><span class="swot-label">W</span>${c.w}</div><div class="swot-item swot-o"><span class="swot-label">O</span>${c.o}</div><div class="swot-item swot-t"><span class="swot-label">T</span>${c.t}</div></div></div>`;
+});
+const tasks=[
+  {name:'Input & Scoping UI',start:0,dur:2,phase:'mvp'},{name:'LLM Planner Agent',start:1,dur:3,phase:'mvp'},
+  {name:'SEO Data Connector',start:1,dur:3,phase:'mvp'},{name:'Web Crawler',start:2,dur:3,phase:'mvp'},
+  {name:'Market Map Chart',start:3,dur:2,phase:'mvp'},{name:'Traffic Trends Chart',start:3,dur:2,phase:'mvp'},
+  {name:'Channel Share Chart',start:4,dur:2,phase:'mvp'},{name:'Mini-SWOT Generator',start:4,dur:3,phase:'mvp'},
+  {name:'Feature Heatmap',start:6,dur:3,phase:'p2'},{name:'Pricing Tracker',start:8,dur:3,phase:'p2'},
+  {name:'Review Intel',start:9,dur:3,phase:'p2'},{name:'Monitoring Alerts',start:10,dur:3,phase:'p2'},
+];
+const rg=document.getElementById('roadmapGrid');
+let hHtml='<div class="roadmap-header"><div class="rh-label">Feature</div>';
+for(let w=1;w<=14;w++) hHtml+=`<div class="rh-week">W${w}</div>`;
+hHtml+='</div>';
+rg.innerHTML=hHtml;
+tasks.forEach(t=>{
+  let row='<div class="roadmap-row"><div class="rr-name">'+t.name+'</div>';
+  for(let w=0;w<14;w++){const active=w>=t.start&&w<t.start+t.dur;row+=`<div class="rr-cell ${active?(t.phase==='mvp'?'rr-mvp':'rr-p2'):'rr-empty'}"></div>`;}
+  row+='</div>';
+  rg.innerHTML+=row;
+});
+renderCharts();
+const navLinks=document.querySelectorAll('.nav-link');
+const sections=document.querySelectorAll('section[id]');
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){navLinks.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+e.target.id);});}});
+},{threshold:.4});
+sections.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
